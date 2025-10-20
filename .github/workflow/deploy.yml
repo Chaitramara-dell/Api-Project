@@ -1,0 +1,36 @@
+name: build-and-deploy-docs
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install redoc-cli
+        run: npm install -g redoc-cli
+
+      - name: Build redoc bundle
+        run: |
+          mkdir site
+          npx redoc-cli bundle openapi.yaml -o site/index.html
+
+      - name: Copy swagger UI static viewer
+        run: |
+          mkdir -p site/swagger
+          cp -r swagger/* site/swagger/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+
